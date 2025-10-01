@@ -12,6 +12,33 @@ Exemplos de uso:
   python todo.py clear
 """
 
+def print_table(tasks: List[Task]) -> None:
+    """Imprime uma tabelinha amigável de tarefas no terminal."""
+    if not tasks:
+        print('Nenhuma tarefa. Exemplo: python todo.py add "Estudar Python"')
+        return
+
+    headers = ("id", "titulo", "status")
+    rows = []
+    for t in tasks:
+        status = "feito" if t.done else "pend."
+        rows.append((str(t.id), t.title, status))
+
+    # Largura por coluna = maior entre cabeçalho e valores
+    col_w = [
+        max(len(headers[0]), *(len(r[0]) for r in rows)),
+        max(len(headers[1]), *(len(r[1]) for r in rows)),
+        max(len(headers[2]), *(len(r[2]) for r in rows)),
+    ]
+
+    header_line = f"{headers[0]:>{col_w[0]}}  {headers[1]:<{col_w[1]}}  {headers[2]:<{col_w[2]}}"
+    sep_line    = f"{'-'*col_w[0]}  {'-'*col_w[1]}  {'-'*col_w[2]}"
+    print(header_line)
+    print(sep_line)
+
+    for r in rows:
+        print(f"{r[0]:>{col_w[0]}}  {r[1]:<{col_w[1]}}  {r[2]:<{col_w[2]}}")
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Gerenciador simples de TODOs (salva em todos.json na pasta do projeto).",
@@ -44,8 +71,7 @@ def main():
         storage.save_tasks(tasks)
         print("✅ Tarefa adicionada.")
     elif args.command == "list":
-        # implementação da impressão entra no próximo passo
-        print("lista (temporário)")
+        print_table(tasks)
     elif args.command == "done":
         try:
             tasks = mark_done(tasks, args.id)

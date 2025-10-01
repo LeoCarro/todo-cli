@@ -3,38 +3,39 @@ from typing import List
 from core import create_task, list_tasks, mark_done, delete_task, clear_tasks, Task
 import storage
 
-def print_table(tasks: List[Task]) -> None:
-    if not tasks:
-        print("Nenhuma tarefa ainda. Use: python todo.py add "sua tarefa"")
-        return
-    # widths
-    id_w = max(2, max(len(str(t.id)) for t in tasks))
-    title_w = max(5, max(len(t.title) for t in tasks))
-    status_w = len("status")
-    print(f"{'id':>{id_w}}  {'titulo':<{title_w}}  {'status':<{status_w}}")
-    print("-" * (id_w + title_w + status_w + 4))
-    for t in tasks:
-        status = "feito" if t.done else "pend."
-        print(f"{t.id:>{id_w}}  {t.title:<{title_w}}  {status:<{status_w}}")
+EPILOG = """
+Exemplos de uso:
+  python todo.py add "Comprar frutas"
+  python todo.py list
+  python todo.py done 1
+  python todo.py delete 1
+  python todo.py clear
+"""
 
-
-def main():
-    parser = argparse.ArgumentParser(description="Gerenciador simples de TODOs (JSON)")
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Gerenciador simples de TODOs (salva em todos.json na pasta do projeto).",
+        epilog=EPILOG,
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_add = sub.add_parser("add", help="Adicionar uma nova tarefa")
-    p_add.add_argument("title", type=str, help="O texto da tarefa")
+    p_add.add_argument("title", type=str, help="O texto da tarefa (use aspas se houver espaços)")
 
-    p_list = sub.add_parser("list", help="Listar tarefas")
+    sub.add_parser("list", help="Listar todas as tarefas")
 
-    p_done = sub.add_parser("done", help="Marcar tarefa como concluída")
-    p_done.add_argument("id", type=int, help="ID da tarefa")
+    p_done = sub.add_parser("done", help="Marcar tarefa como concluída (informe o ID)")
+    p_done.add_argument("id", type=int, help="ID da tarefa (veja com 'python todo.py list')")
 
     p_del = sub.add_parser("delete", help="Excluir uma tarefa pelo ID")
-    p_del.add_argument("id", type=int, help="ID da tarefa")
+    p_del.add_argument("id", type=int, help="ID da tarefa a excluir")
 
-    p_clear = sub.add_parser("clear", help="Apagar TODAS as tarefas")
+    sub.add_parser("clear", help="Apagar TODAS as tarefas (use com cuidado)")
+    return parser
 
+def main():
+    parser = build_parser()
     args = parser.parse_args()
     tasks = storage.load_tasks()
 
@@ -43,7 +44,8 @@ def main():
         storage.save_tasks(tasks)
         print("✅ Tarefa adicionada.")
     elif args.command == "list":
-        print_table(tasks)
+        # implementação da impressão entra no próximo passo
+        print("lista (temporário)")
     elif args.command == "done":
         try:
             tasks = mark_done(tasks, args.id)
